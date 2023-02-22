@@ -1,12 +1,10 @@
-/* eslint-disable quotes */
-/* eslint-disable no-unused-vars */
-/* eslint-disable camelcase */
-/* eslint-disable import/no-extraneous-dependencies */
 require('dotenv').config();
 const axios = require('axios');
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
+const client = require('./database');
+const productsRouter = require('./Routes/products');
 
 // const reviewsRouter = require('./Routes/reviewsRoutes');
 
@@ -22,41 +20,10 @@ app.use(express.urlencoded({ extended: true }));
 // app.use('/', reviewsRouter);
 
 // ----- Routes ----- //
-app.get('/products', (req, res) => {
-  axios.get('https://app-hrsei-api.herokuapp.com/api/fec2/hr-rfe/products', {
-    headers: {
-      Authorization: process.env.AUTH_SECRET,
-    },
-  })
-    .then(({ data }) => {
-      res.status(200);
-      res.send(data);
-      res.end();
-    })
-    .catch(() => res.send('Failed to get products'));
-});
 
-app.get('/products/:product_id/styles', (req, res) => {
-  const { product_id } = req.params;
-  console.log('Request received for styles at product', product_id);
+// ----- Products ----- //
 
-  axios.get(`https://app-hrsei-api.herokuapp.com/api/fec2/hr-rfe/products/${product_id}/styles`, {
-    headers: {
-      Authorization: process.env.AUTH_SECRET,
-    },
-    params: {
-      product_id,
-      page: 1,
-      count: 100,
-    },
-  })
-    .then(({ data }) => {
-      res.status(200);
-      res.send(data);
-      res.end();
-    })
-    .catch(() => res.send('Failed to get styles'));
-});
+app.use('/products', productsRouter);
 
 app.post('/cart', (req, res) => {
   console.log('getting cart post request');
@@ -77,19 +44,6 @@ app.post('/cart', (req, res) => {
     });
 });
 
-// This is for all products GET
-// replicate the HR API syntax
-// ----------- Added Routes
-const baseUrl = 'https://app-hrsei-api.herokuapp.com/api/fec2/hr-rfe';
-const headers = { Authorization: process.env.AUTH_SECRET };
-app.get('/products/:id/?*', (req, res) => {
-  console.log(`GET request received from ${req.originalUrl}`);
-
-  const url = path.join(baseUrl, req.originalUrl);
-  axios.get(url, { headers })
-    .then(({ data }) => res.json(data))
-    .catch(console.log);
-});
 // -------------------------
 
 app.get('/reviews', (req, res) => {
@@ -297,5 +251,22 @@ app.post('/report', (req, res) => {
     .catch(() => res.send('Error occurred when reporting'));
 });
 
-app.listen(8081);
-console.log('Listening at http://localhost:8081');
+const PORT = 8081;
+app.listen(PORT/*process.env.PORT*/, (err) => {
+  if (err) console.log('error in server setup');
+  console.log(`Listening at http://localhost:${PORT}...`);
+  client.connect((err) => {
+    if (err) {
+      console.log('error connecting to db');
+    } else {
+      console.log('connecting to db...');
+    }
+  });
+});
+
+app.on('end', () => {
+  client.end();
+});
+
+
+module.exports = app;
