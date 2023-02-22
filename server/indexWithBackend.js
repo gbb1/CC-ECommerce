@@ -9,7 +9,9 @@ const axios = require('axios');
 const express = require('express');
 const cors = require('cors');
 const qAndARouter = require('./Routes/qAndARoutes');
-const { connectClient, closeClient } = require('./database');
+const reviewsRouter = require('./Routes/reviewsRoutes');
+const productsRouter = require('./Routes/products');
+const reviewsDb = require('./database');
 
 const app = express();
 
@@ -21,14 +23,12 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.urlencoded({ extended: true }));
 // prefix route for router
 app.use('/qa', qAndARouter);
+app.use('/r', reviewsRouter);
+app.use('/products', productsRouter);
 
-connectClient().then(() => {
-  const server = app.listen(3000, () => {
-    console.log('Server started on port 3000');
-  });
-
-  server.on('close', () => {
-    closeClient();
-    console.log('server closed');
-  });
+app.listen(3000, () => {
+  reviewsDb.connect();
+  console.log('Server started on port 3000');
 });
+
+module.exports = app;

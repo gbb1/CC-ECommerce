@@ -1,21 +1,13 @@
+/* eslint-disable max-len */
+/* eslint-disable no-unused-vars */
 const { Client } = require('pg');
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
-const client = new Client({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'Sdc',
-  password: 'postpass',
-  port: '5432',
+const db = new Client({
+  user: process.env.PGUSER,
+  host: process.env.PGHOST,
+  database: process.env.PGDATABASE,
+  password: process.env.PGPASSWORD,
+  port: process.env.PGPORT,
 });
-
-async function connectClient() {
-  await client.connect();
-  console.log('connected to database');
-}
-
-async function closeClient() {
-  await client.close();
-  console.log('closed connection to database');
-}
-
-module.exports = { client, connectClient, closeClient };

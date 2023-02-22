@@ -7,3 +7,6 @@ yarn.lock
 # .DS_Store
 coverage
 yarn-error.log
+server/TestData/*
+server/Reviews/*
+server/Models/*

@@ -1,0 +1,37 @@
+config:
+  target: "https://localhost:3000/"
+  phases:
+    - duration: 60
+      arrivalRate: 5
+      name: Warm up
+    - duration: 120
+      arrivalRate: 5
+      rampTo: 50
+      name: Ramp up load
+    - duration: 120
+      arrivalRate: 50
+      name: Sustained load
+  # payload:
+  #   path: "keywords.csv"
+  #   fields:
+  #     - "keyword"
+
+scenarios:
+  - name: "Get Reviews"
+    flow:
+      - get:
+          url: "/r/reviews?product_id=1000010&sort=newest&count=500"
+          capture:
+            time: true
+          log: "{{ time }} ms"
+      # - post:
+      #     url: "/cart"
+      #     json:
+      #       productId: "{{ productId }}"
+        # - post:
+        #   url: "/r/reviews?product_id=1000010&rating=5&summary='summary'&body='body'&recommend=true&reviewer_name='Testo'&reviewer_email='testo@test.com'&photos=[one.com,two.com,three.com]"
+        #   json:
+        #     kw: "{{ keyword }}"
+        #   capture:
+        #     - json: "$.results[0].id"
+        #       as: "results"

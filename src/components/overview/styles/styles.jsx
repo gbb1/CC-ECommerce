@@ -39,7 +39,7 @@ export default function Styles({
   return (
     <div className="styles">
       <h4 className="price">
-        {styles[currentStyle].sale_price === null
+        {styles[currentStyle].sale_price === 'null'
           ? (
             <span>
               $
