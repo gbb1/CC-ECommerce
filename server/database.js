@@ -1,17 +1,21 @@
-const mongoose = require('mongoose');
+const { Client } = require('pg');
 
-const connectDB = async () => {
-  try {
-    await mongoose.connect('mongodb://127.0.0.1:27017/sdc');
-    console.log('MongoDB connected...');
-  } catch (error) {
-    console.log(`error: ${error}`);
-    process.exit(1);
-  }
-};
+const client = new Client({
+  user: 'postgres',
+  host: 'localhost',
+  database: 'Sdc',
+  password: 'postpass',
+  port: '5432',
+});
 
-const closeDB = () => {
-  mongoose.connection.close();
-};
+async function connectClient() {
+  await client.connect();
+  console.log('connected to database');
+}
 
-module.exports = { connectDB, closeDB };
+async function closeClient() {
+  await client.close();
+  console.log('closed connection to database');
+}
+
+module.exports = { client, connectClient, closeClient };

@@ -2,12 +2,14 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable camelcase */
 /* eslint-disable import/no-extraneous-dependencies */
+
+const path = require('path');
 require('dotenv').config();
 const axios = require('axios');
 const express = require('express');
-const path = require('path');
 const cors = require('cors');
 const qAndARouter = require('./Routes/qAndARoutes');
+const { connectClient, closeClient } = require('./database');
 
 const app = express();
 
@@ -20,6 +22,13 @@ app.use(express.urlencoded({ extended: true }));
 // prefix route for router
 app.use('/qa', qAndARouter);
 
-app.listen(3000, () => {
-  console.log('Server started on port 3000');
+connectClient().then(() => {
+  const server = app.listen(3000, () => {
+    console.log('Server started on port 3000');
+  });
+
+  server.on('close', () => {
+    closeClient();
+    console.log('server closed');
+  });
 });
