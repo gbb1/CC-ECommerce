@@ -11,5 +11,3 @@ const db = new Client({
   password: process.env.PGPASSWORD,
   port: process.env.PGPORT,
 });
-
-module.exports = db;

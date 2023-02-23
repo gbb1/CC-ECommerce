@@ -2,13 +2,15 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable camelcase */
 /* eslint-disable import/no-extraneous-dependencies */
+
+const path = require('path');
 require('dotenv').config();
 const axios = require('axios');
 const express = require('express');
-const path = require('path');
 const cors = require('cors');
 const qAndARouter = require('./Routes/qAndARoutes');
 const reviewsRouter = require('./Routes/reviewsRoutes');
+const productsRouter = require('./Routes/products');
 const reviewsDb = require('./database');
 
 const app = express();
@@ -22,6 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 // prefix route for router
 app.use('/qa', qAndARouter);
 app.use('/r', reviewsRouter);
+app.use('/products', productsRouter);
 
 app.listen(3000, () => {
   reviewsDb.connect();
