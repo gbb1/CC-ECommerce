@@ -7,7 +7,7 @@ const cors = require('cors');
 const client = require('./database');
 // const productsRouter = require('./Routes/products');
 
-// const reviewsRouter = require('./Routes/reviewsRoutes');
+const reviewsRouter = require('./Routes/reviewsRoutes');
 
 const app = express();
 
@@ -24,7 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // ----- Products ----- //
 
-// app.use('/products', productsRouter);
+app.use('/reviews', reviewsRouter);
 
 app.post('/cart', (req, res) => {
   console.log('getting cart post request');
@@ -47,106 +47,106 @@ app.post('/cart', (req, res) => {
 
 // -------------------------
 
-app.get('/reviews', (req, res) => {
-  console.log('GET request received from /reviews');
-  const { sort, product_id, count } = req.query;
+// app.get('/reviews', (req, res) => {
+//   console.log('GET request received from /reviews');
+//   const { sort, product_id, count } = req.query;
 
-  axios.get('https://app-hrsei-api.herokuapp.com/api/fec2/hr-rfe/reviews/', {
-    headers: {
-      Authorization: process.env.AUTH_SECRET,
-    },
-    params: {
-      product_id, // no review product is 37339
-      sort,
-      count, // figure out how to do max count
-    },
-  })
-    .then(({ data }) => {
-      res.status(200);
-      res.json(data);
-      res.end();
-    })
-    .catch(() => res.send('Error occurred when getting reviews from /reviews'));
-});
+//   axios.get('https://app-hrsei-api.herokuapp.com/api/fec2/hr-rfe/reviews/', {
+//     headers: {
+//       Authorization: process.env.AUTH_SECRET,
+//     },
+//     params: {
+//       product_id, // no review product is 37339
+//       sort,
+//       count, // figure out how to do max count
+//     },
+//   })
+//     .then(({ data }) => {
+//       res.status(200);
+//       res.json(data);
+//       res.end();
+//     })
+//     .catch(() => res.send('Error occurred when getting reviews from /reviews'));
+// });
 
-app.post('/reviews', (req, res) => {
-  console.log('POST request received from /reviews');
-  const { data } = req.body;
+// app.post('/reviews', (req, res) => {
+//   console.log('POST request received from /reviews');
+//   const { data } = req.body;
 
-  axios.post('https://app-hrsei-api.herokuapp.com/api/fec2/hr-rfe/reviews/', data, {
-    headers: {
-      Authorization: process.env.AUTH_SECRET,
-    },
-  }).then(() => {
-    console.log('Successful post!');
-    res.end();
-  }).catch(() => {
-    console.log('Error posting review to API endpoint');
-    res.end();
-  });
-});
+//   axios.post('https://app-hrsei-api.herokuapp.com/api/fec2/hr-rfe/reviews/', data, {
+//     headers: {
+//       Authorization: process.env.AUTH_SECRET,
+//     },
+//   }).then(() => {
+//     console.log('Successful post!');
+//     res.end();
+//   }).catch(() => {
+//     console.log('Error posting review to API endpoint');
+//     res.end();
+//   });
+// });
 
-app.get('/reviews/meta', (req, res) => {
-  console.log('GET request received from /reviews/meta');
-  const { product_id } = req.query;
+// app.get('/reviews/meta', (req, res) => {
+//   console.log('GET request received from /reviews/meta');
+//   const { product_id } = req.query;
 
-  axios.get('https://app-hrsei-api.herokuapp.com/api/fec2/hr-rfe/reviews/meta', {
-    headers: {
-      Authorization: process.env.AUTH_SECRET,
-    },
-    params: {
-      product_id,
-    },
-  })
-    .then(({ data }) => {
-      res.status(200);
-      res.json(data);
-    })
-    .catch(() => res.send('Error occurred when getting reviews from /reviews/meta'));
-});
+//   axios.get('https://app-hrsei-api.herokuapp.com/api/fec2/hr-rfe/reviews/meta', {
+//     headers: {
+//       Authorization: process.env.AUTH_SECRET,
+//     },
+//     params: {
+//       product_id,
+//     },
+//   })
+//     .then(({ data }) => {
+//       res.status(200);
+//       res.json(data);
+//     })
+//     .catch(() => res.send('Error occurred when getting reviews from /reviews/meta'));
+// });
 
-app.put('/reviews/:review_id/helpful', (req, res) => {
-  console.log('PUT request received from /reviews/:review_id/helpful');
-  const { review_id } = req.params;
-  // console.log(review_id);
+// app.put('/reviews/:review_id/helpful', (req, res) => {
+//   console.log('PUT request received from /reviews/:review_id/helpful');
+//   const { review_id } = req.params;
+//   // console.log(review_id);
 
-  axios.put(`https://app-hrsei-api.herokuapp.com/api/fec2/hr-rfe/reviews/${review_id}/helpful`, null, {
-    headers: {
-      Authorization: process.env.AUTH_SECRET,
-    },
-  })
-    .then(() => {
-      console.log('Helpful vote successfully counted');
-      res.status(200);
-      res.end();
-    })
-    .catch((err) => {
-      // console.log(err);
-      console.log('Error occured with PUT request');
-      res.end();
-    });
-});
+//   axios.put(`https://app-hrsei-api.herokuapp.com/api/fec2/hr-rfe/reviews/${review_id}/helpful`, null, {
+//     headers: {
+//       Authorization: process.env.AUTH_SECRET,
+//     },
+//   })
+//     .then(() => {
+//       console.log('Helpful vote successfully counted');
+//       res.status(200);
+//       res.end();
+//     })
+//     .catch((err) => {
+//       // console.log(err);
+//       console.log('Error occured with PUT request');
+//       res.end();
+//     });
+// });
 
-app.put('/reviews/:review_id/report', (req, res) => {
-  console.log('PUT request received from /reviews/:review_id/report');
-  const { review_id } = req.params;
-  // console.log(review_id);
+// app.put('/reviews/:review_id/report', (req, res) => {
+//   console.log('PUT request received from /reviews/:review_id/report');
+//   const { review_id } = req.params;
+//   // console.log(review_id);
 
-  axios.put(`https://app-hrsei-api.herokuapp.com/api/fec2/hr-rfe/reviews/${review_id}/report`, null, {
-    headers: {
-      Authorization: process.env.AUTH_SECRET,
-    },
-  })
-    .then(() => {
-      console.log('Review successfully reported and taken off');
-      res.status(200);
-      res.end();
-    })
-    .catch(() => {
-      console.log('Error occured with PUT request for reporting post');
-      res.end();
-    });
-});
+//   axios.put(`https://app-hrsei-api.herokuapp.com/api/fec2/hr-rfe/reviews/${review_id}/report`, null, {
+//     headers: {
+//       Authorization: process.env.AUTH_SECRET,
+//     },
+//   })
+//     .then(() => {
+//       console.log('Review successfully reported and taken off');
+//       res.status(200);
+//       res.end();
+//     })
+//     .catch(() => {
+//       console.log('Error occured with PUT request for reporting post');
+//       res.end();
+//     });
+// });
 
 app.get('/questions', (req, res) => {
   axios.get('https://app-hrsei-api.herokuapp.com/api/fec2/hr-rfe/qa/questions', {
@@ -253,7 +253,8 @@ app.post('/report', (req, res) => {
 });
 
 const PORT = 8081;
-app.listen(PORT/*process.env.PORT*/, (err) => {
+
+app.listen(PORT, (err) => { /*process.env.PORT*/
   if (err) console.log('error in server setup');
   console.log(`Listening at http://localhost:${PORT}...`);
   client.connect((err) => {
@@ -268,6 +269,5 @@ app.listen(PORT/*process.env.PORT*/, (err) => {
 app.on('end', () => {
   client.end();
 });
-
 
 module.exports = app;
