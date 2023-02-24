@@ -6,9 +6,9 @@ const db = require('../database');
 const router = express.Router();
 
 // ----- QUERYING DB ----- //
-router.get('/reviews', (req, res) => {
+router.get('/', (req, res) => {
   // console.log('getting request for reviews data');
-
+  console.log(req.query);
   const sort = {
     newest: 'date',
     helpful: 'helpful',
@@ -24,22 +24,27 @@ router.get('/reviews', (req, res) => {
   }
 
   db.query(`
-    SELECT product_id, r.id, rating, summary, body, date, recommend, reviewer_name, reviewer_email,
-    reported, response, helpfulness, array_agg(url) as photos
+    SELECT product_id, r.id, rating, summary, body, to_timestamp(date::bigint)::date as date, recommend, reviewer_name, reviewer_email,
+    reported, response, helpfulness, array_remove(array_agg(photos), NULL) as photos
       FROM
-      (SELECT * FROM reviews WHERE product_id IN (${req.query.product_id}) AND reported = 'false') r
+      (SELECT * FROM reviews WHERE product_id IN ($1) AND reported = 'false') r
         LEFT JOIN
         (
-        SELECT review_id, url
+        SELECT review_id, jsonb_build_object(photos.id, url) as photos
           FROM photos
-          WHERE review_id IN (SELECT id FROM reviews WHERE product_id IN (${req.query.product_id}))
+          WHERE review_id IN (SELECT id FROM reviews WHERE product_id IN ($2))
+          GROUP BY review_id, photos.id, url
         ) p
         ON r.id = p.review_id
       GROUP BY  product_id, r.id, rating, summary, body, date, recommend, reviewer_name,
         reviewer_email, reported, response, helpfulness
-      ORDER BY ${sort[req.query.sort]} DESC
-      LIMIT ${req.query.count} OFFSET ${req.query.page};
-  `, (err, results) => {
+      ORDER BY $3 DESC
+      LIMIT $4 OFFSET $5;
+  `, [req.query.product_id,
+    req.query.product_id,
+    sort[req.query.sort],
+    req.query.count,
+    req.query.page], (err, results) => {
     res.send(
       {
         product: req.query.product_id,
@@ -52,21 +57,6 @@ router.get('/reviews', (req, res) => {
   });
 });
 
-// SELECT product_id, r.id, rating, summary, body, date, recommend, reviewer_name, reviewer_email,
-//       reported, response, helpfulness, array_agg(url) as photos
-//     FROM reviews r
-//     LEFT JOIN
-//     (
-//       SELECT review_id, url
-//       FROM photos
-//     ) p
-//     ON r.id = p.review_id
-//     WHERE r.product_id IN (${req.query.product_id}) AND r.reported = 'false'
-//     GROUP BY  product_id, r.id, rating, summary, body, date, recommend, reviewer_name,
-//       reviewer_email, reported, response, helpfulness
-//     ORDER BY ${sort[req.query.sort]} DESC
-//     LIMIT ${req.query.count};
-
 router.get('/meta', (req, res) => {
   // console.log('getting request for reviews meta');
   const id = req.query.product_id;
@@ -76,46 +66,46 @@ router.get('/meta', (req, res) => {
     (
       SELECT rec.product_id, recommended, characteristics  FROM
       (
-        SELECT product_id, jsonb_agg(jsonb_build_object(recommend, count)) as recommended FROM
+        SELECT product_id, jsonb_object_agg(recommend, count) as recommended FROM
         (
           SELECT product_id, recommend, sum(count) as count
           FROM recommended
-          WHERE product_id IN (${id})
+          WHERE product_id IN ($1)
           GROUP BY product_id, recommend
         ) s
         GROUP BY product_id
       ) rec
       LEFT JOIN
       (
-        SELECT s.product_id, jsonb_agg(characteristics) as characteristics
+        SELECT s.product_id, jsonb_object_agg(name, characteristics) as characteristics
         FROM
         (
-          SELECT product_id, jsonb_build_object(name,jsonb_build_object('id', characteristic_id, 'value',AVG(value)))
+          SELECT product_id, name, jsonb_build_object('id', characteristic_id, 'value', AVG(value))
             as characteristics
           FROM characteristics_count
-          WHERE product_id IN (${id})
+          WHERE product_id IN ($2)
           GROUP BY product_id, characteristic_id, name) s
           GROUP BY s.product_id) char
           ON rec.product_id = char.product_id
         ) a
       LEFT JOIN
         (
-          SELECT product_id, jsonb_agg(rating) as ratings FROM
+          SELECT product_id, jsonb_object_agg(rating, count) as ratings FROM
           (
-            SELECT product_id, jsonb_build_object(rating, COUNT(rating)) as rating
-            FROM reviews WHERE product_id IN (${id})
+            SELECT product_id, rating, COUNT(rating) as count
+            FROM reviews WHERE product_id IN ($3)
             GROUP BY product_id, rating) rat
           GROUP BY product_id
         ) b
   ON a.product_id = b.product_id;
-  `, (err, result) => {
-    console.log(err, result.rows);
-    res.send(result.rows);
+  `, [id, id, id], (err, result) => {
+    console.log(err, result.rows, result.rows[0]);
+    res.send(result.rows[0]);
   });
 });
 
 // ----- ADDING TO DB ----- //
-router.put('/reviews/:review_id/helpful', (req, res) => {
+router.put('/:review_id/helpful', (req, res) => {
   const { review_id } = req.body;
   // console.log('marking helpful', review_id);
 
@@ -132,7 +122,7 @@ router.put('/reviews/:review_id/helpful', (req, res) => {
   });
 });
 
-router.put('/reviews/:review_id/report', (req, res) => {
+router.put('/:review_id/report', (req, res) => {
   // console.log('reporting');
   const { review_id } = req.body;
 
@@ -149,7 +139,7 @@ router.put('/reviews/:review_id/report', (req, res) => {
   });
 });
 
-router.post('/reviews', (req, res) => {
+router.post('/', (req, res) => {
   const date = Math.floor(new Date().getTime() / 1000).toString();
   let {
     photos, product_id, rating, summary, body,

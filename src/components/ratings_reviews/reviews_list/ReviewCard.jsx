@@ -20,7 +20,7 @@ export default function ReviewCard({
           <StarRating score={review.rating} />
         </div>
         <div className="user-date-info">
-          <UserDateInfo date={review.date} user={review.reviewer_name} />
+          <UserDateInfo date={new Date(review.date * 1000).toLocaleString()} user={review.reviewer_name} />
         </div>
       </div>
       <ReviewCardText
@@ -30,7 +30,7 @@ export default function ReviewCard({
         debouncedSearch={debouncedSearch}
       />
       { review.recommend ? <RecommendCheck /> : null }
-      { review.response ? <SellerResponse response={review.response} /> : null }
+      { review.response !== 'null' ? <SellerResponse response={review.response} /> : null }
       { review.photos.length
         ? <ReviewCardPhotos photos={review.photos} handleImageClick={handleImageClick} /> : null }
       <div className="review-card-buttons">

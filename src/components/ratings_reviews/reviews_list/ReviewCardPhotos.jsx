@@ -5,7 +5,11 @@ export default function ReviewCardPhotos({ photos, handleImageClick }) {
   const photoUrls = [];
   const isDarkMode = useDarkMode();
 
-  const photoElements = photos.map((photo, index) => {
+  const ps = photos.filter((p) => { console.log(p); return (p.url !== undefined); });
+
+  console.log(ps);
+
+  const photoElements = ps.map((photo, index) => {
     photoUrls.push(photo.url);
     return <img key={photo.id} alt={`${index} review`} src={photo.url} className="review-photo" />
   });

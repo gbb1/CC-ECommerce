@@ -23,6 +23,53 @@ app.use(express.urlencoded({ extended: true }));
 // ----- Routes ----- //
 
 // ----- Products ----- //
+app.get('/products', (req, res) => {
+  console.log('getting request');
+  axios.get('https://app-hrsei-api.herokuapp.com/api/fec2/hr-rfe/products', {
+    headers: {
+      Authorization: process.env.AUTH_SECRET,
+    },
+  })
+    .then(({ data }) => {
+      res.status(200);
+      res.send(data);
+      res.end();
+    })
+    .catch(() => res.send('Failed to get products'));
+});
+
+app.get('/products/:product_id/styles', (req, res) => {
+  const { product_id } = req.params;
+  console.log('Request received for styles at product', product_id);
+
+  axios.get(`https://app-hrsei-api.herokuapp.com/api/fec2/hr-rfe/products/${product_id}/styles`, {
+    headers: {
+      Authorization: process.env.AUTH_SECRET,
+    },
+    params: {
+      product_id,
+      page: 1,
+      count: 100,
+    },
+  })
+    .then(({ data }) => {
+      res.status(200);
+      res.send(data);
+      res.end();
+    })
+    .catch(() => res.send('Failed to get styles'));
+});
+
+const baseUrl = 'https://app-hrsei-api.herokuapp.com/api/fec2/hr-rfe';
+const headers = { Authorization: process.env.AUTH_SECRET };
+app.get('/products/:id/?*', (req, res) => {
+  console.log(`GET request received from ${req.originalUrl}`);
+
+  const url = path.join(baseUrl, req.originalUrl);
+  axios.get(url, { headers })
+    .then(({ data }) => res.json(data))
+    .catch(console.log);
+});
 
 app.use('/reviews', reviewsRouter);
 

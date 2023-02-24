@@ -19,13 +19,13 @@ const calcAverageRating = (ratings) => {
 };
 
 const calcRecommended = (recommended) => {
-  const trueCount = Number(recommended.true);
-  const totalCount = Number(recommended.false) + trueCount;
+  const trueCount = recommended.true === undefined ? 0 : Number(recommended.true);
+  const totalCount = recommended.false === undefined ? 0 : Number(recommended.false) + trueCount;
   return trueCount / totalCount;
 };
 
 export default function RatingsBreakdown({
-  reviewMetaData, handleStarClick, starFilter, setStarFilter, setAppAvgRating
+  reviewMetaData, handleStarClick, starFilter, setStarFilter, setAppAvgRating,
 }) {
   const [totalVotes, setTotalVotes] = useState(0);
   const [averageRating, setAverageRating] = useState(5);
