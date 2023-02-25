@@ -11,8 +11,8 @@ router.get('/', (req, res) => {
   console.log(req.query);
   const sort = {
     newest: 'date',
-    helpful: 'helpful',
-    relevant: 'relevant',
+    helpful: 'helpfulness',
+    relevant: 'helpfulness',
   };
 
   if (req.query.count === undefined) {
@@ -23,8 +23,11 @@ router.get('/', (req, res) => {
     req.query.page = 0;
   }
 
+  console.log(sort[req.query.sort]);
+
+  // to_timestamp(date::bigint)::date as
   db.query(`
-    SELECT product_id, r.id, rating, summary, body, to_timestamp(date::bigint)::date as date, recommend, reviewer_name, reviewer_email,
+    SELECT product_id, r.id as review_id, rating, summary, body, date, recommend, reviewer_name, reviewer_email,
     reported, response, helpfulness, array_remove(array_agg(photos), NULL) as photos
       FROM
       (SELECT * FROM reviews WHERE product_id IN ($1) AND reported = 'false') r
@@ -38,13 +41,13 @@ router.get('/', (req, res) => {
         ON r.id = p.review_id
       GROUP BY  product_id, r.id, rating, summary, body, date, recommend, reviewer_name,
         reviewer_email, reported, response, helpfulness
-      ORDER BY $3 DESC
-      LIMIT $4 OFFSET $5;
+      ORDER BY ${sort[req.query.sort]} DESC
+      LIMIT $3 OFFSET $4;
   `, [req.query.product_id,
     req.query.product_id,
-    sort[req.query.sort],
     req.query.count,
     req.query.page], (err, results) => {
+      // console.log(results.rows);
     res.send(
       {
         product: req.query.product_id,
@@ -106,14 +109,14 @@ router.get('/meta', (req, res) => {
 
 // ----- ADDING TO DB ----- //
 router.put('/:review_id/helpful', (req, res) => {
-  const { review_id } = req.body;
+  const { review_id } = req.params;
   // console.log('marking helpful', review_id);
 
   db.query(`
     UPDATE reviews
     SET helpfulness = helpfulness + 1
-    WHERE id = ${Number(review_id)};
-  `, (err, result) => {
+    WHERE id = $1;
+  `, [review_id], (err, result) => {
     if (err) {
       res.status(500).send();
     } else {
@@ -122,24 +125,46 @@ router.put('/:review_id/helpful', (req, res) => {
   });
 });
 
+// put to /reviews/:id...
 router.put('/:review_id/report', (req, res) => {
-  // console.log('reporting');
-  const { review_id } = req.body;
+  console.log('reporting');
+  const { review_id } = req.params;
 
   db.query(`
     UPDATE reviews
-    SET reported = true
-    WHERE id = ${Number(review_id)};
-  `, (err, result) => {
+    SET reported = 'true'
+    WHERE id = $1;
+  `, [review_id], (err, result) => {
     if (err) {
       res.status(500).send();
     } else {
-      res.status(204).send();
+      res.status(204).send('reported');
     }
   });
 });
 
+// router.get('/:review_id/report', (req, res) => {
+//   console.log('reporting');
+//   const { review_id } = req.params;
+//   console.log(Number(review_id));
+
+//   db.query(`
+//     SELECT reported
+//     FROM reviews
+//     WHERE id IN (${review_id});
+//   `, (err, result) => {
+//     console.log(result);
+//     if (err) {
+//       res.status(500).send();
+//     } else {
+//       res.status(204).send(result);
+//     }
+//   });
+// });
+
+// post to /reviews
 router.post('/', (req, res) => {
+  console.log('GETTING POST REQUEST');
   const date = Math.floor(new Date().getTime() / 1000).toString();
   let {
     photos, product_id, rating, summary, body,
@@ -147,22 +172,23 @@ router.post('/', (req, res) => {
   } = req.body;
   photos = `'{${JSON.stringify(photos).slice(2, -2)}}'`;
 
-  db.query(`
+  db.query(
+    `
     BEGIN;
 
     INSERT INTO recommended (product_id, recommend, count)
-    VALUES (${Number(product_id)}, ${recommend}, ${1});
+    VALUES ($1, $2, ${1});
 
     INSERT INTO reviews (product_id, rating, summary, body, recommend, reviewer_name, reviewer_email, date, helpfulness, reported)
     VALUES (
-      ${Number(product_id)},
-      ${Number(rating)},
-      ${String(summary)},
-      ${String(body)},
-      ${String(recommend)},
-      ${reviewer_name},
-      ${reviewer_email},
-      ${date},
+      $3,
+      $4,
+      $5,
+      $6,
+      $7,
+      $8,
+      $9,
+      $10,
       0,
       'false'
       )
@@ -170,17 +196,31 @@ router.post('/', (req, res) => {
 
     INSERT INTO photos (review_id, url)
     VALUES (
-    (SELECT MAX(id) FROM reviews WHERE product_id IN (${Number(product_id)})),
-    unnest(${photos}::text[]));
+    (SELECT MAX(id) FROM reviews WHERE product_id IN ($11)),
+    unnest($12::text[]));
 
     COMMIT;
-  `, (err, result) => {
-    if (err) {
-      res.status(500).send(err);
-    } else {
-      res.status(201).send('CREATED');
-    }
-  });
+  `,
+    [Number(product_id),
+      recommend,
+      Number(product_id),
+      Number(rating),
+      String(summary),
+      String(body),
+      String(recommend),
+      reviewer_name,
+      reviewer_email,
+      date,
+      Number(product_id),
+      photos],
+    (err, result) => {
+      if (err) {
+        res.status(500).send(err);
+      } else {
+        res.status(201).send('CREATED');
+      }
+    },
+  );
 });
 
 module.exports = router;

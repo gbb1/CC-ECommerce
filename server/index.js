@@ -18,7 +18,12 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.urlencoded({ extended: true }));
 
-// app.use('/', reviewsRouter);
+app.use('/reviews', reviewsRouter);
+
+app.get('/loaderio-cda6cba8c6f2769086faac27b5c9bfed', (req, res) => {
+  console.log('GETTING REQUEST');
+  res.send('loaderio-cda6cba8c6f2769086faac27b5c9bfed');
+});
 
 // ----- Routes ----- //
 
@@ -70,8 +75,6 @@ app.get('/products/:id/?*', (req, res) => {
     .then(({ data }) => res.json(data))
     .catch(console.log);
 });
-
-app.use('/reviews', reviewsRouter);
 
 app.post('/cart', (req, res) => {
   console.log('getting cart post request');

@@ -4,7 +4,9 @@ import { useDarkMode } from './DarkModeProvider';
 
 // This function takes a user and date prop
 export default function UserDateInfo({ user, date }) {
-  const formattedDate = format(new Date(date).toISOSTring(), 'MMMM dd, yyyy');
+  console.log('HERE');
+  console.log(date);
+  const formattedDate = format(new Date(Number(date)), 'MMMM dd, yyyyy');
   const isDarkMode = useDarkMode();
 
   return (

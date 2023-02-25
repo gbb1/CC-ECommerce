@@ -22,9 +22,15 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.urlencoded({ extended: true }));
 // prefix route for router
+
 app.use('/qa', qAndARouter);
-app.use('/r', reviewsRouter);
+app.use('/reviews', reviewsRouter);
 app.use('/products', productsRouter);
+
+app.get('/loaderio-a00e353a494395bebcfb699828d9a511', (req, res) => {
+  console.log('GETTING REQUEST');
+  res.send('loaderio-a00e353a494395bebcfb699828d9a511');
+});
 
 app.listen(3000, () => {
   reviewsDb.connect();

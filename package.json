@@ -10,7 +10,8 @@
     "build": "webpack --mode=production",
     "dev": "webpack serve --open",
     "server-dev": "npx nodemon server server/index.js",
-    "test": "jest"
+    "test": "jest",
+    "backend-server": "node server/indexWithBackend.js"
   },
   "dependencies": {
     "artillery": "^2.0.0-30",
