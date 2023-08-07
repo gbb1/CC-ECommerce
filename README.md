@@ -26,7 +26,7 @@ Shop products, see multiple styles and similar items, plus questions, answers, a
 
 In the product overview, site visitors can:
 
-![alt text](https://github.com/gbb1/FEC/blob/main/overviewGifs/ImagesGif.gif)
+![alt text](http://g.recordit.co/oy3lyHdEVK.gif)
 - Navigate through multiple images via an image carousel
 - View and zoom in on images of different clothing items
   - In the expanded view, zooming will follow mouse movement
